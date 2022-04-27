@@ -4,13 +4,32 @@ import './app.styles.scss';
 
 
 
-const ApiComponent = ({ users, setUsers }) => {
+/*
+  States need to be destructured in this child component because we define the 
+  users state in the App component(Parent).
+*/
+const APIComponent = ({ users, setUsers }) => {
+  /*
+    The searchField State is used to help us filter data.
+    We will be storing our text input values in here.
+  */
+  const [searchField, setSearchField] = useState('');
+  /*
+   filteredUsers is an array which changes depending on the state
+   of searchField
+   */
+  const filteredUsers = users.filter((user) => {
+    return user.name.toLowerCase().includes(searchField);
+  });
 
-  // API request is made when this component renders
+  /*
+    API request gets made ONLY when this component renders, otherwise it will
+    run infinitely.
+  */
   useEffect(() => {
     Axios.get('https://jsonplaceholder.typicode.com/users')
       .then((res) => {
-        // sets the API data to our State defined in the App Component
+        // sets the API data to our State defined in the App Component (parent)
         setUsers(res.data);
       });
   }, [setUsers]);
@@ -21,25 +40,20 @@ const ApiComponent = ({ users, setUsers }) => {
       <h1>API Component</h1>
       <input
         type="text"
+        placeholder='Search...'
         onChange={(event) => {
-          const searchString = event.target.value.toLowerCase();
-          const newArray = users.filter((user) => {
-            return user.name.toLowerCase().includes(searchString);
-          });
-          setUsers(() => {
-            return newArray
-          })
-        }} />
-        {/* Here we map through the users state (defined in the App Component)
-            with each user in the state, will render a div with its own user.id for key
-            and li with user.name
-         */}
+          /*
+            searchFieldString is a string of whatever the user types
+            and is then stored in the state of searchField.
+           */
+          const searchFieldString = event.target.value.toLowerCase();
+          setSearchField(searchFieldString);
+        }}/>
       <ul>
-        {users.map((user) => {
+      {/* We map through the filteredUsers array to render our data to our App. */}
+        {filteredUsers.map((user) => {
           return (
-            <div key={user.id}>
-              <li>{user.name}</li>
-            </div>
+              <li key={user.id}>{user.name}</li>
           );
         })}
       </ul>
@@ -53,8 +67,7 @@ function App() {
 
   return (
     <div>
-      <h1>App</h1>
-      <ApiComponent users={users} setUsers={setUsers} />
+      <APIComponent users={users} setUsers={setUsers} />
     </div>
   );
 }
